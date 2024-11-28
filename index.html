@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Presentation of Six Countries</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v2.min.js"></script>
+    <script src="choroplethmap.js"></script>
+    <style>
+        .popupContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: margin-right 0.3s ease; /* Smooth adjustment */
+        }
+        .floating-panel { 
+            display: none;
+            position: absolute;
+            top: 10%;
+            right: 5%;
+            background-color: rgb(244, 246, 246);
+            border: 1px solid black;
+            z-index: 10;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+        }
+        .floating-panel iframe {
+            width: 550px;
+            height: 500px;
+            border: none;
+        }
+        .close {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            float: right;
+            width: 30px;
+            height: 30px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 30px;
+            background-color: rgb(169, 202, 219);
+            transition: transform 0.4s; 
+        }
+        .close:hover,
+        .close:focus {
+            text-decoration: none;
+            opacity: 0.7;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+<div class="popupContainer"></div>
+<div id="mapToolTip"></div>
+<h1>
+    Global Presentation of Six Countries
+</h1>
+<div class="buttons">
+    <button id="toggleButton">Switch Projection</button>
+    <button id="visualizeButton">Visualize Data on Map</button>
+</div>
+<div class="container">
+    <div id="main"></div>
+    <div class="slider">
+        <button class="timeLapse"><span>Play time-lapse</span></button>
+        <button id="startYear"><span>2000</span></button>
+        <input type="range" id="yearSlider" min="2000" max="2023" value="2000" step="1">
+        <button id="endYear"><span>2023</span></button>
+        <div class="yearToolTip"></div>
+    </div>
+</div>
+<div id="floatingPanel" class="floating-panel">
+    <span class="close" onclick="closePanel()">&times;</span>
+    <iframe id="linechartFrame" src=""></iframe>
+</div>
+<script>
+    const width = 954;
+    const height = 534;
+
+    const svg = d3.select("#main")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+    visualizeMap(svg)
+
+    function closePanel() {
+        const panel = document.getElementById("floatingPanel");
+        panel.style.display = "none";
+
+        // Reset the layout of contentContainer
+        const contentContainer = document.querySelector(".popupContainer");
+        contentContainer.style.marginRight = "0";
+    }
+</script>
+</body>
+</html>
