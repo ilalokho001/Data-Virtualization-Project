@@ -20,16 +20,16 @@
             position: absolute;
             top: 10%;
             right: 5%;
-            background-color: rgb(244, 246, 246);
-            border: 1px solid black;
             z-index: 10;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
         .floating-panel iframe {
             width: 550px;
             height: 500px;
             border: none;
+            margin-left: 20px;
         }
         .close {
             display: flex;
@@ -55,48 +55,106 @@
     </style>
 </head>
 <body>
-<div class="popupContainer"></div>
-<div id="mapToolTip"></div>
-<h1>
-    Global Presentation of Six Countries
-</h1>
-<div class="buttons">
-    <button id="toggleButton">Switch Projection</button>
-    <button id="visualizeButton">Visualize Data on Map</button>
-</div>
-<div class="container">
-    <div id="main"></div>
-    <div class="slider">
-        <button class="timeLapse"><span>Play time-lapse</span></button>
-        <button id="startYear"><span>2000</span></button>
-        <input type="range" id="yearSlider" min="2000" max="2023" value="2000" step="1">
-        <button id="endYear"><span>2023</span></button>
-        <div class="yearToolTip"></div>
+    <div class="popupContainer"></div>
+    <div id="mapToolTip"></div>
+    <h1>
+        Global Presentation of Six Countries
+    </h1>
+    <div class="buttons">
+        <button id="toggleButton">Switch Projection</button>
+        <button id="visualizeButton">Visualize Data on Map</button>
+        <button id="compareButton" style="opacity: 0;">Compare</button>
     </div>
-</div>
-<div id="floatingPanel" class="floating-panel">
-    <span class="close" onclick="closePanel()">&times;</span>
-    <iframe id="linechartFrame" src=""></iframe>
-</div>
-<script>
-    const width = 954;
-    const height = 534;
+    <div class="container">
+        <div id="main"></div>
+        <div class="slider">
+            <button class="timeLapse"><span>Play time-lapse</span></button>
+            <button id="startYear"><span>2000</span></button>
+            <input type="range" id="yearSlider" min="2000" max="2023" value="2000" step="1">
+            <button id="endYear"><span>2023</span></button>
+            <div class="yearToolTip"></div>
+        </div>
+    </div>
+    <div id="countriesPanel" class="floating-panel">
+        <span class="close" onclick="closePanel()">&times;</span>
+        <iframe id="linechartFrame" src=""></iframe>
+    </div>
 
-    const svg = d3.select("#main")
-                .append("svg")
-                .attr("width", width)
-                .attr("height", height);
-
-    visualizeMap(svg)
-
-    function closePanel() {
-        const panel = document.getElementById("floatingPanel");
-        panel.style.display = "none";
-
-        // Reset the layout of contentContainer
-        const contentContainer = document.querySelector(".popupContainer");
-        contentContainer.style.marginRight = "0";
-    }
-</script>
-</body>
+    <div id="comparePanel" class="floating-panel" style="display: none;">
+        <span class="close" onclick="closeComparePanel()">&times;</span>
+        <div class="dropdown-container">
+            <!-- Dropdown menus for comparison -->
+            <label for="options">Select Option:</label>
+            <select id="options">
+                <option value="option1-0">Select Option</option>
+                <option value="option1-1">Bar Chart</option>
+                <option value="option1-2">Bubble Chart</option>
+            </select>
+        </div>
+        <iframe id="contentFrame" src=""></iframe> <!-- IFrame to load external content -->
+    </div>
+    <script>
+        const width = 954;
+        const height = 534;
+    
+        const svg = d3.select("#main")
+                    .append("svg")
+                    .attr("width", width)
+                    .attr("height", height);
+    
+        visualizeMap(svg);
+    
+        document.getElementById("compareButton").addEventListener("click", () => {
+            // Display the compare panel when compare button is clicked
+            const panel = document.getElementById("comparePanel");
+            panel.style.display = "block";
+    
+            // Adjust layout if needed
+            const contentContainer = document.querySelector(".popupContainer");
+            contentContainer.style.marginRight = "350px"; // Optional adjustment for layout
+        });
+    
+        document.getElementById("options").addEventListener("change", (event) => {
+            const selectedOption = event.target.value;
+            const iframe = document.getElementById("contentFrame");
+    
+            if (selectedOption === "option1-1") {
+                // Load the Bar Chart HTML into the iframe
+                iframe.src = "barchart.html"; // Ensure barchart.html is in the same folder
+            } else if (selectedOption === "option1-2") {
+                // Example: Add Bubble Chart functionality if needed
+                iframe.src = ""; // Set the Bubble Chart HTML if applicable
+            } else {
+                // Clear the iframe for invalid selections
+                iframe.src = "";
+            }
+        });
+    
+        function closePanel() {
+            const panel = document.getElementById("countriesPanel");
+            panel.style.display = "none";
+    
+            // Reset the layout of contentContainer
+            const contentContainer = document.querySelector(".popupContainer");
+            contentContainer.style.marginRight = "0";
+    
+            // Clear the iframe content
+            const iframe = document.getElementById("linechartFrame");
+            iframe.src = "";
+        }
+    
+        function closeComparePanel() {
+            const panel = document.getElementById("comparePanel");
+            panel.style.display = "none";
+    
+            // Reset the layout of contentContainer
+            const contentContainer = document.querySelector(".popupContainer");
+            contentContainer.style.marginRight = "0";
+    
+            // Clear the iframe content
+            const iframe = document.getElementById("contentFrame");
+            iframe.src = "";
+        }
+    </script>
+    </body>
 </html>
