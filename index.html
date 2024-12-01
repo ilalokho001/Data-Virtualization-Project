@@ -67,28 +67,29 @@
         <button id="compareButton" style="opacity: 0;">Compare</button>
     </div>
     <div class="container">
-        <div id="main"></div>
-        <div class="slider">
-            <button class="timeLapse"><span>Play time-lapse</span></button>
-            <button id="startYear"><span>2000</span></button>
-            <input type="range" id="yearSlider" min="2000" max="2023" value="2000" step="1">
-            <button id="endYear"><span>2023</span></button>
-            <div class="yearToolTip"></div>
+        <div id="main">
+            <div class="slider">
+                <button class="timeLapse"><span>Play time-lapse</span></button>
+                <button id="startYear"><span>2000</span></button>
+                <input type="range" id="yearSlider" min="2000" max="2023" value="2000" step="1">
+                <button id="endYear"><span>2023</span></button>
+                <div class="yearToolTip"></div>
+            </div>
+            <div id="comparePanel" class="floating-panel" style="display: none;">
+                <span class="close" onclick="closeComparePanel()">&times;</span>
+                <div class="dropdown-container">
+                    <!-- Dropdown menus for comparison -->
+                    <label for="options">Select Option:</label>
+                    <select id="options">
+                        <option value="option1-0">Select Option</option>
+                        <option value="option1-1">Bar Chart</option>
+                        <option value="option1-2">Bubble Chart</option>
+                        <option value="option1-3">Line Chart</option>
+                    </select>
+                </div>
+                <iframe id="contentFrame" src=""></iframe> <!-- IFrame to load external content -->
+            </div>
         </div>
-    </div>
-    <div id="comparePanel" class="floating-panel" style="display: none;">
-        <span class="close" onclick="closeComparePanel()">&times;</span>
-        <div class="dropdown-container">
-            <!-- Dropdown menus for comparison -->
-            <label for="options">Select Option:</label>
-            <select id="options">
-                <option value="option1-0">Select Option</option>
-                <option value="option1-1">Bar Chart</option>
-                <option value="option1-2">Bubble Chart</option>
-                <option value="option1-3">Line Chart</option>
-            </select>
-        </div>
-        <iframe id="contentFrame" src=""></iframe> <!-- IFrame to load external content -->
     </div>
     <script>
         const width = 954;
@@ -129,7 +130,7 @@
                 iframe.src = "barchart.html"; // Ensure barchart.html is in the same folder
             } else if (selectedOption === "option1-2") {
                 // Example: Add Bubble Chart functionality if needed
-                iframe.src = ""; // Set the Bubble Chart HTML if applicable
+                iframe.src = "bubblechart.html"; // Set the Bubble Chart HTML if applicable
             } else if (selectedOption === "option1-3") {
                 // Example: Add Line Chart functionality if needed
                 const countryName = 'USA'; //default is USA

@@ -154,10 +154,12 @@ function visualizeMap(svg) {
                 const countryName = countryCode[countryId].name;
 
                 if (countryName) {
-                    const panel = document.getElementById("countriesPanel");
+                    const panel = document.getElementById("comparePanel");
+                    let selectedOption = document.getElementById("options");
+                    selectedOption.value = "option1-3";
 
                     // Pass the country name via URL parameter to the iframe
-                    const iframe = document.getElementById("linechartFrame");
+                    const iframe = document.getElementById("contentFrame");
                     iframe.src = `linechart.html?country=${encodeURIComponent(countryName)}`;
 
                     panel.style.display = "block";
