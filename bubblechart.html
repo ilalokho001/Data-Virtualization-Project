@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Bubble Chart!</title>
+
+    <script src="https://d3js.org/d3.v6.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <style>
+       
+       
+    body {
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        background-color: #f5f5f5;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 20px 0;
+    }
+
+    .title {
+        font-size: 1.5em;
+        margin-bottom: 10px;
+    }
+
+    #dropdownContainer {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    #dropdownContainer select {
+        margin: 0 10px;
+        font-size: 1em;
+        padding: 5px 10px;
+    }
+
+    svg {
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .slider-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+        width:fit-content;  
+        height:min-content
+    }
+
+    .slider-container label {
+        margin-bottom: 5px;
+        font-size: 1em;
+    }
+
+    input[type="range"] {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    #selectedYear {
+        font-weight: bold;
+        font-size: 1em;
+       text-align: center;
+        min-width: 50px;
+    }
+
+    .bubbles {
+            stroke-width: 1px;
+            stroke: black;
+            opacity: .8
+        }
+
+    .bubbles:hover {
+            stroke: black;
+        }
+    input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 10px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+        }
+
+    input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background-color: #4caf50;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+    .output-container {
+            margin-top: 30px;
+        }
+
+    .x-label, .y-label {
+            font-size: 1em;
+            font-weight: bold;
+        }
+
+    .slider{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);      
+    }
+
+    #yearRange {
+            width: 300px;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+            cursor: pointer;
+    }
+
+    #yearRange::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background-color: #4caf50;
+            border-radius: 50%;
+            cursor: pointer;
+    }
+
+    .slider input{
+            -webkit-appearance:none;
+            width:825px;
+            height:0.5px;
+            border-radius:5px;
+            background-color:rgb(112, 108, 108);
+            outline:none;
+            cursor: pointer;
+            margin: 15px;
+}
+
+.slider input::-webkit-slider-thumb{
+        -webkit-appearance:none;
+        width:20px;
+        height:20px;
+        border-radius:50%;
+        cursor: pointer;
+        background-color:rgb(169, 202, 219);
+}
+
+.slider button{
+        height: 34px;
+        width: 50px;
+        background-color:#22222247;
+        color:#4d4747;
+        border-radius:3px;
+        text-align:center;
+        padding: 5.5px;
+        vertical-align:top;
+        cursor: pointer;
+        border: none;
+        font-size: 15px;
+}
+
+.slider button:hover { 
+        opacity: 0.7;
+}
+
+.slider input:hover::-webkit-slider-thumb{
+        width: 23px;
+        height: 23px;
+}
+
+.slider .timeLapse {
+        height: 34px;
+        width: 120px;
+        background-color:#22222247;
+        color:#4d4747;
+        border-radius:3px;
+        text-align:center;
+        padding: 5.5px;
+        vertical-align:top;
+        cursor: pointer;
+        border: none;
+        font-size: 15px;
+        margin: 0 10px 0 0;
+}
+
+.yearToolTip {
+        display: none;
+        position: absolute; 
+        background-color: rgb(169, 202, 219); 
+        color: #000; 
+        border: none;
+        border-radius: 3px; 
+        padding: 5px; 
+        font-size: 14.5px;
+        opacity: 0.68;
+        height: 24px;
+        width: 40px;
+        text-align:center;
+        pointer-events: none;
+        z-index: 2;
+        transform: translateX(-50%); 
+}
+
+.yearToolTip::after { 
+        content: ""; 
+        position: absolute; 
+        bottom: -10px; /* Position the arrow at the bottom */ 
+        left: 50%; 
+        margin-left: -5px; 
+        border-width: 5px; 
+        border-style: solid; 
+        border-color: rgb(169, 202, 219) transparent transparent transparent;
+}
+
+
+.buttons button{
+        margin: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 10px;
+        background-color: rgb(169, 202, 219);
+        border: 1px solid #4d4747;
+        transition: transform 0.4s; 
+        cursor: pointer;
+}
+
+.buttons button:hover { 
+        opacity: 0.7;
+        transform: scale(1.1);
+}
+
+
+.country:hover {
+        opacity: .6;
+        stroke: black;
+        stroke-width: 4px;
+}
+
+
+</style>
+</head>
+
+<body>
+
+    
+    <div class="container">
+        <!-- Title -->
+        <div class="title">Bubble Chart Comparison Graph</div>
+
+        <!-- Dropdowns -->
+        <div id="dropdownContainer">
+            <select id="X-axis" name="X-axis">
+                <option value="">Select X-axis</option>
+                <option value="GDP_Trillions_USD">GDP_Trillions_USD</option>
+                <option value="Life_Expectancy">Life_Expectancy</option>
+                <option value="Literacy_Rate">Literacy_Rate</option>
+                <option value="Poverty_rate">Poverty_rate</option>
+            </select>
+            <select id="Y-axis" name="Y-axis">
+                <option value="">Select Y-axis</option>
+                <option value="GDP_Trillions_USD">GDP_Trillions_USD</option>
+                <option value="Life_Expectancy">Life_Expectancy</option>
+                <option value="Literacy_Rate">Literacy_Rate</option>
+                <option value="Poverty_rate">Poverty_rate</option>
+            </select>
+            <select id="Country" name="Country">
+                <option value="">Select Countries</option>
+                <option value="all">Select All</option>
+            </select>
+        </div>
+        
+
+        
+
+        <!-- Chart -->
+        <svg id="lineChart" width="550" height="300"></svg>
+ 
+        <!-- Slider -->
+        <div class="slider-container">
+            <div class="slider">
+            <button class="timeLapse"><span>Play</span></button>
+            <button id="startYear"><span>2000</span></button>
+            <input type="range" id="yearRange" min="2000" max="2023" value="2000" step="1" />
+            <div id="selectedYear">2000</div>
+            <button id="endYear"><span>2023</span></button>
+            <div class="yearToolTip"></div> 
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+
+        // load csv
+        d3.csv("cc.csv", d=> ({
+                Year: Number(d.Year),
+                Country: d.Country,
+                Population: Number(d['Population (in Millions)']),
+                GDP_Trillions_USD: Number(d['GDP (in Trillions USD)']),
+                Life_Expectancy: Number(d['Life Expectancy (Years)']),
+                Literacy_Rate: Number(d['Literacy Rate (%)']),
+                Poverty_rate: Number(d['Poverty Rate (%)']),
+
+        })
+        ).then(generateBubbleChart);
+
+        function generateBubbleChart(data){
+            // Set the dimension of container
+            const width = 550, height = 300;
+            const margin = { top: 70, right: 70, bottom: 70, left: 70 }
+            const container = d3.select(".container");
+            const title = container.append("div")
+               .attr("class", "title")
+
+            const xScale = d3.scaleLinear().range([margin.left, width - margin.right]).domain([0,100]);
+            const yScale = d3.scaleLinear().range([height - margin.bottom, margin.top]).domain([0,100]);
+          
+            // Append SVG
+            const svg = d3.selectAll("#lineChart")
+            .attr("width", width)
+            .attr("height", height);
+
+            // Append groups for axes
+            const xAxisGroup = svg.append("g")
+            .attr("transform", `translate(0, ${height - margin.bottom})`);
+            const yAxisGroup = svg.append("g")
+            .attr("transform", `translate(${margin.left}, 0)`);
+
+            svg.append("text")
+                .attr("class", "x-label")
+                .attr("x", width / 2)
+                .attr("y", height - 30)
+                .style("text-anchor", "middle");
+
+            svg.append("text")
+                .attr("class", "y-label")
+                .attr("x", -height / 2)
+                .attr("y", 20)
+                .attr("transform", "rotate(-90)")
+                .style("text-anchor", "middle");
+
+            // Function to update chart
+            function onDropdownChange() {
+            const xMetric = document.getElementById("X-axis").value;
+            const yMetric = document.getElementById("Y-axis").value;
+
+            // Clear SVG if no axes selected
+            if (!xMetric || !yMetric) {
+            svg.selectAll(".bubble").remove();
+            xAxisGroup.call(d3.axisBottom(xScale).tickFormat(""));
+            yAxisGroup.call(d3.axisLeft(yScale).tickFormat(""));
+            return;
+            }
+
+            // Update scales
+            xScale.domain([0, d3.max(data, d => d[xMetric])]).nice();
+            yScale.domain([0, d3.max(data, d => d[yMetric])]).nice();
+
+            // Update axes
+            xAxisGroup.transition().call(d3.axisBottom(xScale));
+            yAxisGroup.transition().call(d3.axisLeft(yScale));
+
+            const countries = Array.from(new Set(data.map(d => d.Country)));
+            const countryDropdown = document.getElementById("Country");
+
+            //////
+            countryDropdown.querySelectorAll("option:not([value='all'])").forEach(option => option.remove());
+            countryDropdown.innerHTML = "<option value=''>Select Countries</option><option value='all'>Select All</option>";
+            countryDropdown.querySelectorAll("option:not([value='all'])").forEach(option => option.remove());
+            /////
+
+            countries.forEach(country => {
+                const option = document.createElement("option");
+                option.value = country;
+                option.textContent = country;
+                countryDropdown.appendChild(option);
+            });
+
+            var z = d3.scaleSqrt().domain([0, 1000]).range([2, 30]);
+
+            // Add a scale for bubble color
+            var color = d3.scaleOrdinal(d3.schemeSet1);
+
+            function updateChart(year) {
+            const xMetric = document.getElementById("X-axis").value;
+            const yMetric = document.getElementById("Y-axis").value;
+
+            if (!xMetric || !yMetric) {
+            svg.selectAll(".bubbles").remove();
+            return;
+            }
+
+            const globalXDomain = [0, d3.max(data, d => +d[xMetric])]; 
+            const globalYDomain = [0, d3.max(data, d => +d[yMetric])];
+
+            const selectedOptions = Array.from(countryDropdown.selectedOptions);
+                let selectedCountries = selectedOptions.map(option => option.value);
+
+                if (selectedCountries.includes("all")) {
+                    selectedCountries = countries;
+                }
+
+            // Filter data for the selected year
+
+            const filteredData = data.filter(
+                    d => d.Year === year && selectedCountries.includes(d.Country)
+                );
+
+    // Scales
+    xScale.domain(globalXDomain).nice();
+    yScale.domain(globalYDomain).nice();
+
+    // Update axes
+    xAxisGroup.call(d3.axisBottom(xScale));
+    yAxisGroup.call(d3.axisLeft(yScale));
+
+    svg.select(".x-label").text(xMetric);
+    svg.select(".y-label").text(yMetric);
+
+    // Bind filtered data to bubbles
+    const bubbles = svg.selectAll(".bubbles").data(filteredData, d => d.Country);
+
+    // Create new bubbles
+    bubbles.enter().append("circle")
+        .attr("class", "bubbles")
+        .attr("cx", d => xScale(d[xMetric]))
+        .attr("cy", d => yScale(d[yMetric]))
+        .attr("r", 0) // Start with radius 0 
+        .style("fill", d => color(d.Country))
+        .on("mouseover", (event, d) => {
+            const xMetric = document.getElementById("X-axis").value; // Fetch dynamically
+            const yMetric = document.getElementById("Y-axis").value; 
+            tooltip.style("opacity", 1)
+            .html(`Country: ${d.Country}<br>Population: ${d.Population}<br>
+                ${xMetric}: ${+d[xMetric]}<br>${yMetric}: ${+d[yMetric]}`)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 20) + "px");
+        })
+        .on("mousemove", event => {
+            tooltip.style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 20) + "px");
+        })
+        .on("mouseleave", () => {
+            tooltip.style("opacity", 0);
+        })
+        .transition() // Transition for new bubbles
+        .duration(1000)
+        .attr("r", d => Math.sqrt(d.Population)); //radius based on population
+
+    // Update selection: Adjust existing bubbles
+    bubbles.transition() // Smooth transition for existing bubbles
+        .duration(1000)
+        .attr("cx", d => xScale(d[xMetric]))
+        .attr("cy", d => yScale(d[yMetric]))
+        .attr("r", d => Math.sqrt(d.Population));
+
+    // Exit selection: Remove bubbles not in the current data
+    bubbles.exit().transition()
+        .duration(500)
+        .attr("r", 0) // Shrink bubbles before removing
+        .remove();
+}
+
+    let isPlaying = false;
+    let playInterval;
+
+    document.querySelector('.timeLapse').addEventListener('click', function () {
+    const playButton = this.querySelector('span');
+    const slider = document.getElementById('yearRange');
+    const startYear = parseInt(slider.min, 10);
+    const endYear = parseInt(slider.max, 10);
+
+    if (isPlaying) {
+        // Stop the animation
+        clearInterval(playInterval);
+        isPlaying = false;
+        playButton.textContent = "Play";
+    } else {
+        // Start the animation
+        let currentYear = parseInt(slider.value, 10);
+
+        playInterval = setInterval(() => {
+            if (currentYear > endYear) {
+                clearInterval(playInterval);
+                isPlaying = false;
+                playButton.textContent = "Play";
+            } else {
+                slider.value = currentYear;
+                document.getElementById('selectedYear').textContent = currentYear;
+                updateChart(currentYear);
+                currentYear++;
+            }
+        }, 500); 
+
+        isPlaying = true;
+        playButton.textContent = "Pause";
+        }
+        });
+
+            const tooltip = d3.select("body").append("div")
+                .attr("class", "tooltip")
+                .style("opacity", 0)
+                .style("position", "absolute")
+                .style("background-color", "black")
+                .style("color", "white")
+                .style("padding", "10px")
+                .style("border-radius", "5px"); 
+
+            
+
+            document.getElementById("yearRange").addEventListener("input", function () {
+                const year = +this.value;
+                document.getElementById("selectedYear").textContent = year;
+                updateChart(year);
+            });
+
+            countryDropdown.addEventListener("change", () => {
+                const year = +document.getElementById("yearRange").value;
+                updateChart(year);
+            });
+
+            updateChart(2000);
+       
+        }
+
+
+
+            
+            document.getElementById("X-axis").addEventListener("change", onDropdownChange);
+            document.getElementById("Y-axis").addEventListener("change", onDropdownChange);
+
+            document.getElementById("X-axis").value = "GDP_Trillions_USD";
+            document.getElementById("Y-axis").value = "Life_Expectancy";
+
+            document.getElementById("Country").value = "all";
+
+            // Event listener for 2000 button
+            document.getElementById("startYear").addEventListener("click", () => {
+            const startYear = 2000;
+            document.getElementById("yearRange").value = startYear;
+            document.getElementById("selectedYear").textContent = startYear;
+            updateChart(startYear);
+            });
+
+            // Event listener for 2023 button
+            document.getElementById("endYear").addEventListener("click", () => {
+             const endYear = 2023;
+            document.getElementById("yearRange").value = endYear;
+            document.getElementById("selectedYear").textContent = endYear;
+            updateChart(endYear);
+            });
+
+            // Initial render
+            onDropdownChange();
+
+
+
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+// Country Multiple selection
+//Description than dropdown
+// Population content on circle
+
+    }
+
+</script>
+</body>

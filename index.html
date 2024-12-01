@@ -17,9 +17,10 @@
         }
         .floating-panel { 
             display: none;
-            position: absolute;
-            top: 10%;
-            right: 5%;
+            position: fixed;
+            top: 15%;
+            left: 75%;
+            transform: translateX(-50%);
             z-index: 10;
             padding: 10px;
             border-radius: 5px;
@@ -75,11 +76,6 @@
             <div class="yearToolTip"></div>
         </div>
     </div>
-    <div id="countriesPanel" class="floating-panel">
-        <span class="close" onclick="closePanel()">&times;</span>
-        <iframe id="linechartFrame" src=""></iframe>
-    </div>
-
     <div id="comparePanel" class="floating-panel" style="display: none;">
         <span class="close" onclick="closeComparePanel()">&times;</span>
         <div class="dropdown-container">
@@ -89,6 +85,7 @@
                 <option value="option1-0">Select Option</option>
                 <option value="option1-1">Bar Chart</option>
                 <option value="option1-2">Bubble Chart</option>
+                <option value="option1-3">Line Chart</option>
             </select>
         </div>
         <iframe id="contentFrame" src=""></iframe> <!-- IFrame to load external content -->
@@ -105,16 +102,25 @@
         visualizeMap(svg);
     
         document.getElementById("compareButton").addEventListener("click", () => {
-            // Display the compare panel when compare button is clicked
             const panel = document.getElementById("comparePanel");
+
+            if(panel.style.display === "none"){
+                let defaultOption = document.getElementById("options");
+                const iframe = document.getElementById("contentFrame");
+                defaultOption.value = "option1-0";
+                iframe.src = "";
+            }
+            
+            // Display the compare panel when compare button is clicked
             panel.style.display = "block";
     
             // Adjust layout if needed
             const contentContainer = document.querySelector(".popupContainer");
-            contentContainer.style.marginRight = "350px"; // Optional adjustment for layout
+            contentContainer.style.marginRight = "620px"; // Optional adjustment for layout
         });
     
         document.getElementById("options").addEventListener("change", (event) => {
+
             const selectedOption = event.target.value;
             const iframe = document.getElementById("contentFrame");
     
@@ -124,24 +130,15 @@
             } else if (selectedOption === "option1-2") {
                 // Example: Add Bubble Chart functionality if needed
                 iframe.src = ""; // Set the Bubble Chart HTML if applicable
+            } else if (selectedOption === "option1-3") {
+                // Example: Add Line Chart functionality if needed
+                const countryName = 'USA'; //default is USA
+                iframe.src = `linechart.html?country=${encodeURIComponent(countryName)}`;
             } else {
                 // Clear the iframe for invalid selections
                 iframe.src = "";
             }
         });
-    
-        function closePanel() {
-            const panel = document.getElementById("countriesPanel");
-            panel.style.display = "none";
-    
-            // Reset the layout of contentContainer
-            const contentContainer = document.querySelector(".popupContainer");
-            contentContainer.style.marginRight = "0";
-    
-            // Clear the iframe content
-            const iframe = document.getElementById("linechartFrame");
-            iframe.src = "";
-        }
     
         function closeComparePanel() {
             const panel = document.getElementById("comparePanel");
@@ -155,6 +152,6 @@
             const iframe = document.getElementById("contentFrame");
             iframe.src = "";
         }
-    </script>
+    </script
     </body>
 </html>
