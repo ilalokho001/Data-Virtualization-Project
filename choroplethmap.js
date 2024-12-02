@@ -1,19 +1,3 @@
-function resize() {
-    const container = document.querySelector(".container");
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-
-    // Update SVG dimensions
-    svg.attr("width", width).attr("height", height);
-
-    // Update projection scale and fit
-    projection.fitExtent([[0.5, 0.5], [width - 0.5, height - 0.5]], outline);
-
-    // Update paths and re-render the map
-    path.projection(projection);
-    drawMap(worldData);
-}
-
 function visualizeMap(svg) {
     let hasVisualizedMap = false; // Track the current visualization
     let isOrthographic = false; // Track current projection type
@@ -79,9 +63,6 @@ function visualizeMap(svg) {
 
         // Draw the initial map with globe data
         drawMap(worldData);
-
-        //window.addEventListener("resize", resize); 
-        //resize();
 
         // Add dragging and rotating
         svg.call(d3.drag().on("drag", function (event) {
@@ -229,8 +210,7 @@ function visualizeMap(svg) {
             const t = Math.min(1, ease(j / m));
             projection = interpolate(t);
             path.projection(projection);
-            drawMap(worldData)
-
+            drawMap(worldData);
             if (t < 1) {
                 j++;
                 requestAnimationFrame(transition);
@@ -299,6 +279,9 @@ function visualizeMap(svg) {
                 compareButton.style.transition = "all 0.5s ease"; // Add a smooth transition
                 compareButton.style.opacity = 1;
             }, 500);
+
+            // Add the legend
+            createLegend();
         
         } else {
             sliderContainer.style.transition = "all 0.5s ease"; 
@@ -319,6 +302,9 @@ function visualizeMap(svg) {
             setTimeout(() => {
                 compareButton.style.display = "none";
             }, 500);
+
+            // Remove the legend
+            d3.select("#legendContainer").remove();
         }
     }
 
@@ -470,4 +456,57 @@ function visualizeMap(svg) {
 
         });
     }
+
+    function createLegend() {
+        const legendTranslateX  = 625;
+        const legendOffsetX = 10;
+
+        // Remove any existing legend to avoid duplicates
+        d3.select("#legendWrapper").select("svg").remove();
+    
+        // Create a new SVG inside the legend container
+        const legendSvg = d3.select("#legendWrapper")
+            .append("svg")
+            .attr("width", 350 + legendOffsetX)
+            .attr("height", 80)
+            .attr("transform", `translate(${legendTranslateX}, 0)`); 
+    
+        // Add a gradient for the legend
+        const gradient = legendSvg.append("defs")
+            .append("linearGradient")
+            .attr("id", "colorGradient")
+            .attr("x1", "0%")
+            .attr("y1", "0%")
+            .attr("x2", "100%")
+            .attr("y2", "0%");
+    
+        const gradientSteps = 5;
+        const scaleSteps = d3.range(gradientSteps).map(i => i / (gradientSteps - 1));
+        scaleSteps.forEach((step, i) => {
+            gradient.append("stop")
+                .attr("offset", `${step * 100}%`)
+                .attr("stop-color", colorScale(Math.log(minGDP) + step * (Math.log(maxGDP) - Math.log(minGDP))));
+        });
+    
+        // Append a rectangle with the gradient
+        legendSvg.append("rect")
+            .attr("x", 10)
+            .attr("y", 40)
+            .attr("width", 300)
+            .attr("height", 20)
+            .style("fill", "url(#colorGradient)");
+    
+        // Add scale labels
+        const scaleLabels = [minGDP, (minGDP + maxGDP) / 4, (minGDP + maxGDP) / 2, (3 * (minGDP + maxGDP)) / 4, maxGDP];
+        const labelPositions = d3.range(scaleLabels.length).map(i => 10 + i * (280 / (scaleLabels.length - 1)));
+
+        scaleLabels.forEach((label, i) => {
+            legendSvg.append("text")
+                .attr("x", labelPositions[i] + legendOffsetX) // Spread evenly across the gradient
+                .attr("y", 35) // Place above the gradient
+                .style("font-size", "12px")
+                .style("text-anchor", "middle")
+                .text(`$${label.toFixed(1)}T`);
+        });
+    }     
 }
