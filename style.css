@@ -148,3 +148,9 @@ body{
     background-color: rgb(185, 198, 205);
     font-size: 14.5px;
 }
+
+#legendWrapper {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 20px;
+}
