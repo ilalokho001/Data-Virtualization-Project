@@ -393,6 +393,7 @@ function visualizeMap(svg) {
         function updateTooltip(value) {
             const slider = yearSlider.node();
             const rect = slider.getBoundingClientRect();
+            const sliderOffsetTop = slider.offsetTop;
 
             const min = parseFloat(slider.min);
             const max = parseFloat(slider.max);
@@ -401,10 +402,11 @@ function visualizeMap(svg) {
             const sliderThumbWidth = 20;
             const handlePosition = rect.left + sliderPercentage * (rect.width - sliderThumbWidth) + (sliderThumbWidth / 2);
 
-            const tooltipHeight = yeartooltip.offsetHeight || 20; // Default tooltip height if not rendered yet 
+            const tooltipHeight = slider.offsetHeight;
+
             yeartooltip
                 .style("left", `${handlePosition}px`)
-                .style("top", `${rect.top - tooltipHeight - 10}px`)
+                .style("top", `${sliderOffsetTop - 50}px`)
                 .style("display", "block")
                 .html(value)
         }
