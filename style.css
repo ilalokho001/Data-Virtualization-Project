@@ -139,3 +139,12 @@ body{
     border-style: solid; 
     border-color: rgb(169, 202, 219) transparent transparent transparent;
 }
+
+#options{
+    height: 34px;
+    width: 125px;
+    border-radius: 8px;
+    border: 1px solid #4d4747;
+    background-color: rgb(185, 198, 205);
+    font-size: 14.5px;
+}

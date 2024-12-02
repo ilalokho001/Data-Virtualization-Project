@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive Bar Chart</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        #controls {
+            margin: 10px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            width: 470px;
+        }
+        select, input[type="range"] {
+            margin: 5px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .countries{
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            height: 145px;
+            align-content: flex-start;
+        }
+        .chart {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .bar {
+            transition: fill 0.3s;
+        }
+        .bar:hover {
+            opacity: 0.8;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .axis text {
+            font-size: 12px;
+            fill: #333;
+        }
+        .axis path, .axis line {
+            fill: none;
+            shape-rendering: crispEdges;
+            stroke: #ccc;
+        }
+        .axis--x .tick line {
+            stroke: #ddd;
+        }
+        .axis--y .tick line {
+            stroke: #ddd;
+        }
+        #slider { 
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Control Panel for User Interaction -->
+    <div id="controls">
+        <div id="countries">
+            <label for="country-select-1">Country 1:</label>
+            <select id="country-select-1"></select>
+
+            <label for="country-select-2">Country 2:</label>
+            <select id="country-select-2"></select>
+        </div>
+
+        <div id="attribute">
+            <label for="attribute-select">Attribute:</label>
+            <select id="attribute-select"></select>
+        </div>
+
+        <div id="slider">
+            <label for="year-slider">Year:</label>
+            <input type="range" id="year-slider" min="2000" max="2023" step="1" value="2023">
+            <span id="year-label">2023</span>
+        </div>  
+    </div>
+
+    <!-- SVG Container for the Bar Chart -->
+    <svg width="500" height="300" class="chart"></svg>
+
+    <!-- Tooltip for displaying values -->
+    <div class="tooltip" style="display: none;"></div>
+
+    <script>
+        // Load the CSV dataset
+        d3.csv("cc.csv").then(data => {
+            // Get unique list of countries and attributes from the dataset
+            const countries = Array.from(new Set(data.map(d => d.Country)));
+            const attributes = Object.keys(data[0]).filter(attr => attr !== 'Country' && attr !== 'Year');
+
+            // Populate the country dropdowns
+            const countrySelect1 = d3.select("#country-select-1");
+            const countrySelect2 = d3.select("#country-select-2");
+            countries.forEach(country => {
+                countrySelect1.append("option").text(country).attr("value", country);
+                countrySelect2.append("option").text(country).attr("value", country);
+            });
+
+            // Populate the attribute dropdown
+            const attributeSelect = d3.select("#attribute-select");
+            attributes.forEach(attr => {
+                attributeSelect.append("option").text(attr).attr("value", attr);
+            });
+
+            // Set default selections
+            countrySelect1.property("value", countries[0]);
+            countrySelect2.property("value", countries[1]);
+            attributeSelect.property("value", attributes[0]);
+
+            // Draw the initial bar chart based on the default selections
+            updateBarChart(data);
+
+            // Update the bar chart on any selection change
+            d3.selectAll("#country-select-1, #country-select-2, #attribute-select, #year-slider").on("change", () => {
+                d3.select("#year-label").text(d3.select("#year-slider").property("value")); // Update year label
+                updateBarChart(data);
+            });
+        });
+
+        function updateBarChart(data) {
+            // Get the user selections
+            const country1 = d3.select("#country-select-1").property("value");
+            const country2 = d3.select("#country-select-2").property("value");
+            const attribute = d3.select("#attribute-select").property("value");
+            const selectedYear = d3.select("#year-slider").property("value");
+
+            // Filter data for the selected countries and year
+            const filteredData = data.filter(d => (d.Country === country1 || d.Country === country2) && d.Year == selectedYear);
+
+            // Set up the dimensions of the SVG and scales
+            const svg = d3.select(".chart");
+            const width = +svg.attr("width");
+            const height = +svg.attr("height");
+            const margin = { top: 20, right: 20, bottom: 50, left: 80 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+
+            // Clear any previous content in the SVG
+            svg.selectAll("*").remove();
+
+            // Create scales
+            const xScale = d3.scaleBand()
+                .domain(filteredData.map(d => d.Country))
+                .range([margin.left, chartWidth + margin.left])
+                .padding(0.4);
+
+            const yScale = d3.scaleLinear()
+                .domain([0, d3.max(filteredData, d => +d[attribute]) || 1])
+                .range([chartHeight + margin.top, margin.top]);
+
+            // Draw the bars
+            svg.selectAll(".bar")
+                .data(filteredData)
+                .enter()
+                .append("rect")
+                .attr("class", "bar")
+                .attr("x", d => xScale(d.Country))
+                .attr("y", d => yScale(d[attribute]))
+                .attr("width", xScale.bandwidth())
+                .attr("height", d => chartHeight + margin.top - yScale(d[attribute]))
+                .attr("fill", (d, i) => i % 2 === 0 ? "#a4cc7e" : "#c47ac3") // Alternate colors
+                .on("mouseover", function(event, d) {
+                    d3.select(".tooltip")
+                        .style("display", "block")
+                        .style("left", event.pageX + 10 + "px")
+                        .style("top", event.pageY - 25 + "px")
+                        .html(`${d.Country}<br>${attribute}: ${+d[attribute]}`);
+                })
+                .on("mouseout", () => {
+                    d3.select(".tooltip").style("display", "none");
+                });
+
+            // Add X and Y axes
+            const xAxis = d3.axisBottom(xScale);
+            const yAxis = d3.axisLeft(yScale).ticks(10);
+
+            svg.append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", `translate(0, ${chartHeight + margin.top})`)
+                .call(xAxis);
+
+            svg.append("g")
+                .attr("class", "axis axis--y")
+                .attr("transform", `translate(${margin.left}, 0)`)
+                .call(yAxis);
+
+            // Add or update the Y-axis label
+            svg.selectAll(".y-axis-label").remove(); // Clear any existing label
+
+            svg.append("text")
+                .attr("class", "y-axis-label")
+                .attr("text-anchor", "middle")
+                .attr("transform", `translate(${margin.left / 2}, ${(chartHeight + margin.top) / 2}) rotate(-90)`)
+                .style("font-size", "14px")
+                .style("fill", "#333")
+                .text(attribute); // Dynamically set the label to the selected attribute
+        }
+    </script>
+</body>
+</html>

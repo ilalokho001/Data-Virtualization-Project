@@ -154,10 +154,12 @@ function visualizeMap(svg) {
                 const countryName = countryCode[countryId].name;
 
                 if (countryName) {
-                    const panel = document.getElementById("floatingPanel");
+                    const panel = document.getElementById("comparePanel");
+                    let selectedOption = document.getElementById("options");
+                    selectedOption.value = "option1-3";
 
                     // Pass the country name via URL parameter to the iframe
-                    const iframe = document.getElementById("linechartFrame");
+                    const iframe = document.getElementById("contentFrame");
                     iframe.src = `linechart.html?country=${encodeURIComponent(countryName)}`;
 
                     panel.style.display = "block";
@@ -279,26 +281,44 @@ function visualizeMap(svg) {
         if (!hasVisualizedMap) {
             sliderContainer.style.display = "block";
             sliderContainer.style.opacity = 0;
-             setTimeout(() => {
+            setTimeout(() => {
                 sliderContainer.style.transition = "all 0.5s ease"; // Add a smooth transition
                 sliderContainer.style.opacity = 1;
-             }, 500);
-
+            }, 500);
+        
             // Visualize the data
             updateMap(currentYear);
             button.textContent = "Initialize Visualization";
             hasVisualizedMap = true;
+        
+            // Show the compare button with a smooth transition
+            const compareButton = document.getElementById('compareButton');
+            compareButton.style.display = "inline-block";
+            compareButton.style.opacity = 0;
+            setTimeout(() => {
+                compareButton.style.transition = "all 0.5s ease"; // Add a smooth transition
+                compareButton.style.opacity = 1;
+            }, 500);
+        
         } else {
             sliderContainer.style.transition = "all 0.5s ease"; 
             sliderContainer.style.opacity = 0;
-             setTimeout(() => {
+            setTimeout(() => {
                 sliderContainer.style.display = "none";
-             }, 500);
-
+            }, 500);
+        
             // Reset visualization
             button.textContent = "Visualize Data on Map";
             hasVisualizedMap = false;
             drawMap(worldData);
+        
+            // Hide the compare button
+            const compareButton = document.getElementById('compareButton');
+            compareButton.style.transition = "all 0.5s ease"; 
+            compareButton.style.opacity = 0;
+            setTimeout(() => {
+                compareButton.style.display = "none";
+            }, 500);
         }
     }
 

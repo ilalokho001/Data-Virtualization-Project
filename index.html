@@ -17,19 +17,53 @@
         }
         .floating-panel { 
             display: none;
-            position: absolute;
-            top: 10%;
-            right: 5%;
-            background-color: rgb(244, 246, 246);
-            border: 1px solid black;
+            position: fixed;
+            top: 15%;
+            left: 80%;
+            transform: translateX(-50%);
             z-index: 10;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
         .floating-panel iframe {
             width: 550px;
             height: 500px;
             border: none;
+            margin-left: 20px;
+        }
+
+        .resize-handle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .resize-handle.top-left {
+            top: -7.5px;
+            left: -7.5px;
+            cursor: nwse-resize;
+        }
+
+        .resize-handle.top-right {
+            top: -7.5px;
+            right: -7.5px;
+            cursor: nesw-resize;
+        }
+
+        .resize-handle.bottom-left {
+            bottom: -7.5px;
+            left: -7.5px;
+            cursor: nesw-resize;
+        }
+
+        .resize-handle.bottom-right {
+            bottom: -7.5px;
+            right: -7.5px;
+            cursor: nwse-resize;
         }
         .close {
             display: flex;
@@ -55,48 +89,206 @@
     </style>
 </head>
 <body>
-<div class="popupContainer"></div>
-<div id="mapToolTip"></div>
-<h1>
-    Global Presentation of Six Countries
-</h1>
-<div class="buttons">
-    <button id="toggleButton">Switch Projection</button>
-    <button id="visualizeButton">Visualize Data on Map</button>
-</div>
-<div class="container">
-    <div id="main"></div>
-    <div class="slider">
-        <button class="timeLapse"><span>Play time-lapse</span></button>
-        <button id="startYear"><span>2000</span></button>
-        <input type="range" id="yearSlider" min="2000" max="2023" value="2000" step="1">
-        <button id="endYear"><span>2023</span></button>
-        <div class="yearToolTip"></div>
+    <div class="popupContainer"></div>
+    <div id="mapToolTip"></div>
+    <h1>
+        Global Presentation of Six Countries
+    </h1>
+    <div class="buttons">
+        <button id="toggleButton">Switch Projection</button>
+        <button id="visualizeButton">Visualize Data on Map</button>
+        <button id="compareButton" style="opacity: 0;">Compare</button>
     </div>
-</div>
-<div id="floatingPanel" class="floating-panel">
-    <span class="close" onclick="closePanel()">&times;</span>
-    <iframe id="linechartFrame" src=""></iframe>
-</div>
-<script>
-    const width = 954;
-    const height = 534;
+    <div class="container">
+        <div id="main"></div>
+        <div class="slider">
+            <button class="timeLapse"><span>Play time-lapse</span></button>
+            <button id="startYear"><span>2000</span></button>
+            <input type="range" id="yearSlider" min="2000" max="2023" value="2000" step="1">
+            <button id="endYear"><span>2023</span></button>
+            <div class="yearToolTip"></div>
+        </div>
+        <div id="comparePanel" class="floating-panel" style="display: none;">
+            <span class="close" onclick="closeComparePanel()">&times;</span>
+            <div class="dropdown-container">
+                <!-- Dropdown menus for comparison -->
+                <label for="options">Select Option:</label>
+                <select id="options">
+                    <option value="option1-0">Select Option</option>
+                    <option value="option1-1">Bar Chart</option>
+                    <option value="option1-2">Bubble Chart</option>
+                    <option value="option1-3">Line Chart</option>
+                </select>
+            </div>
+            <iframe id="contentFrame" src=""></iframe> <!-- IFrame to load external content -->
+            <div class="resize-handle top-left"></div>
+            <div class="resize-handle top-right"></div>
+            <div class="resize-handle bottom-left"></div>
+            <div class="resize-handle bottom-right"></div>
+        </div>
+    </div>
+    <script>
+        const width = 954;
+        const height = 534;
 
-    const svg = d3.select("#main")
-                .append("svg")
-                .attr("width", width)
-                .attr("height", height);
+        let isResizing = false;
+        let isDragging = false;
+        let currentHandle = null;
+        let startX, startY, startWidth, startHeight, startLeft, startTop;
 
-    visualizeMap(svg)
+        const panel = document.getElementById("comparePanel");
+        const iframe = document.getElementById("contentFrame");
+        const resizeHandles = document.querySelectorAll(".resize-handle");
 
-    function closePanel() {
-        const panel = document.getElementById("floatingPanel");
-        panel.style.display = "none";
+    
+        const svg = d3.select("#main")
+                    .append("svg")
+                    .attr("width", width)
+                    .attr("height", height);
+    
+        visualizeMap(svg);
+    
+        document.getElementById("compareButton").addEventListener("click", () => {
+            if(panel.style.display === "none"){
+                let defaultOption = document.getElementById("options");
+                defaultOption.value = "option1-0";
+                iframe.src = "";
+            }
+            
+            // Display the compare panel when compare button is clicked
+            panel.style.display = "block";
+    
+            // Adjust layout if needed
+            const contentContainer = document.querySelector(".popupContainer");
+            contentContainer.style.marginRight = "620px"; // Optional adjustment for layout
+        });
+    
+        document.getElementById("options").addEventListener("change", (event) => {
+            const selectedOption = event.target.value;
+    
+            if (selectedOption === "option1-1") {
+                // Load the Bar Chart HTML into the iframe
+                iframe.src = "barchart.html"; // Ensure barchart.html is in the same folder
+            } else if (selectedOption === "option1-2") {
+                // Example: Add Bubble Chart functionality if needed
+                iframe.src = "bubblechart.html"; // Set the Bubble Chart HTML if applicable
+            } else if (selectedOption === "option1-3") {
+                // Example: Add Line Chart functionality if needed
+                const countryName = 'USA'; //default is USA
+                iframe.src = `linechart.html?country=${encodeURIComponent(countryName)}`;
+            } else {
+                // Clear the iframe for invalid selections
+                iframe.src = "";
+            }
+        });
 
-        // Reset the layout of contentContainer
-        const contentContainer = document.querySelector(".popupContainer");
-        contentContainer.style.marginRight = "0";
-    }
-</script>
-</body>
+        resizeHandles.forEach(handle => {
+            handle.addEventListener("mousedown", (e) => {
+                isResizing = true;
+                currentHandle = handle;
+
+                // Store initial mouse position and element dimensions
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = parseInt(window.getComputedStyle(iframe).width, 10);
+                startHeight = parseInt(window.getComputedStyle(iframe).height, 10);
+                startLeft = parseInt(window.getComputedStyle(panel).left, 10);
+                startTop = parseInt(window.getComputedStyle(panel).top, 10);
+
+                console.log('mousedown - startX:', startX, 'startY:', startY, 'startWidth:', startWidth, 'startHeight:', startHeight);
+
+                // Change cursor based on the handle being dragged
+                document.body.style.cursor = getComputedStyle(handle).cursor;
+
+                // Attach mousemove and mouseup listeners
+                document.addEventListener("mousemove", onMouseMove);
+                document.addEventListener("mouseup", onMouseUp);
+            });
+        });
+
+        // Function to handle mouse movement during resizing
+        function onMouseMove(e) {
+            if (isResizing){
+
+                let newWidth = startWidth;
+                let newHeight = startHeight;
+                let newLeft = startLeft;
+                let newTop = startTop;
+
+                if (currentHandle.classList.contains("top-left")) {
+                    newWidth = Math.max(300, startWidth - (e.clientX - startX));
+                    newHeight = Math.max(200, startHeight - (e.clientY - startY));
+                    newLeft = startLeft + (e.clientX - startX);
+                    newTop = startTop + (e.clientY - startY);
+                } else if (currentHandle.classList.contains("top-right")) {
+                    newWidth = Math.max(300, startWidth + (e.clientX - startX));
+                    newHeight = Math.max(200, startHeight - (e.clientY - startY));
+                    newTop = startTop + (e.clientY - startY);
+                } else if (currentHandle.classList.contains("bottom-left")) {
+                    newWidth = Math.max(300, startWidth - (e.clientX - startX));
+                    newHeight = Math.max(200, startHeight + (e.clientY - startY));
+                    newLeft = startLeft + (e.clientX - startX);
+                } else if (currentHandle.classList.contains("bottom-right")) {
+                    newWidth = Math.max(300, startWidth + (e.clientX - startX));
+                    newHeight = Math.max(200, startHeight + (e.clientY - startY));
+                }
+
+                // Apply the new dimensions to the iframe and panel
+                iframe.style.width = `${newWidth}px`;
+                iframe.style.height = `${newHeight}px`;
+                panel.style.left = `${newLeft}px`;
+                panel.style.top = `${newTop}px`;
+
+            } else if (isDragging) {
+                // Calculate the distance moved by the mouse
+                const dx = e.clientX - dragStartX;
+                const dy = e.clientY - dragStartY;
+
+                // Move the panel
+                panel.style.left = `${startLeft + dx}px`;
+               
+                panel.style.top = `${startTop + dy}px`;
+            }
+        }
+
+        // Function to stop resizing
+        function onMouseUp() {
+            isResizing = false;
+            isDragging = false;
+            document.body.style.cursor = "default"; // Reset cursor
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+        }
+
+        panel.addEventListener("mousedown", (e) => {
+            // Only start dragging if it's not on a resize handle
+            if (e.target.classList.contains("resize-handle")) return;
+
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+
+            // Store the initial position of the panel
+            startLeft = parseInt(window.getComputedStyle(panel).left, 10);
+            startTop = parseInt(window.getComputedStyle(panel).top, 10);
+
+            // Attach mousemove and mouseup listeners for dragging
+            document.addEventListener("mousemove", onMouseMove);
+            document.addEventListener("mouseup", onMouseUp);
+        });
+    
+        function closeComparePanel() {
+            const panel = document.getElementById("comparePanel");
+            panel.style.display = "none";
+    
+            // Reset the layout of contentContainer
+            const contentContainer = document.querySelector(".popupContainer");
+            contentContainer.style.marginRight = "0";
+    
+            // Clear the iframe content
+            const iframe = document.getElementById("contentFrame");
+            iframe.src = "";
+        }
+    </script
+    </body>
 </html>
