@@ -254,6 +254,37 @@
             stroke: black;
             stroke-width: 4px;
         }
+        .legend-container {
+            display: flex;
+            flex-direction: column;
+            margin-left: 20px;
+        }
+
+        .legend {
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+        }
+        .chart-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
     </style>
 </head>
 
@@ -290,7 +321,15 @@
 
 
         <!-- Chart -->
-        <svg id="lineChart"></svg>
+        <div class="chart-container">
+            <svg id="lineChart" width="800" height="500"></svg>
+            <div class="legend-container">
+                <div class="legend" id="legend"></div>
+            </div>
+        </div>
+        <!-- <svg id="lineChart" width="800" height="500"></svg>
+        <div class="legend" id="legend"></div> -->
+
 
         <!-- Slider -->
         <div class="slider-container">
@@ -323,7 +362,7 @@
 
         function generateBubbleChart(data) {
             // Set the dimension of container
-            const width = 450, height = 300;
+            const width = 700, height = 500;
             const margin = { top: 70, right: 70, bottom: 70, left: 70 }
             const container = d3.select(".container");
             const title = container.append("div")
@@ -436,6 +475,21 @@
 
                     // Bind filtered data to bubbles
                     const bubbles = svg.selectAll(".bubbles").data(filteredData, d => d.Country);
+
+                    const legend = d3.select("#legend");
+                    legend.html("") // Clear existing legend
+
+                    countries.forEach(country => {
+                    const item = legend.append("div")
+                    .attr("class", "legend-item");
+
+                    item.append("div")
+                    .attr("class", "legend-color")
+                    .style("background-color", color(country));
+
+                     item.append("span").text(country);
+                    });
+
 
                     // Create new bubbles
                     bubbles.enter().append("circle")
