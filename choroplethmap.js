@@ -304,7 +304,7 @@ function visualizeMap(svg) {
             }, 500);
 
             // Remove the legend
-            d3.select("#legendContainer").remove();
+            d3.select("#legendWrapper").select("svg").remove();
         }
     }
 
